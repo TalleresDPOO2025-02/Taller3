@@ -7,24 +7,69 @@ import uniandes.dpoo.aerolinea.exceptions.AeropuertoDuplicadoException;
 
 /**
  * Esta clase encapsula la información sobre los aeropuertos e implementa algunas operaciones relacionadas con la ubicación geográfica de los aeropuertos.
- * 
- * No puede haber dos aeropuertos con el mismo código.
+ * * No puede haber dos aeropuertos con el mismo código.
  */
 public class Aeropuerto
 {
-    // TODO completar
+    private final String nombre;
+    private final String codigoIata;
+    private final String nombreCiudad;
+    private final double latitud;
+    private final double longitud;
+    private static final double RADIO_TERRESTRE = 6371.0;
+    private static final Set<String> codigosUsados = new HashSet<>();
     
 
     /**
+     * Constructor de la clase Aeropuerto.
+     * @param nombre El nombre del aeropuerto.
+     * @param codigoIata El código de tres letras IATA del aeropuerto.
+     * @param nombreCiudad La ciudad donde se encuentra el aeropuerto.
+     * @param latitud La latitud del aeropuerto.
+     * @param longitud La longitud del aeropuerto.
+     * @throws AeropuertoDuplicadoException Se lanza esta excepción si el código IATA ya ha sido usado.
+     */
+    public Aeropuerto(String nombre, String codigoIata, String nombreCiudad, double latitud, double longitud) throws AeropuertoDuplicadoException {
+        if (codigosUsados.contains(codigoIata)) {
+            throw new AeropuertoDuplicadoException("El aeropuerto con el código " + codigoIata + " ya existe.");
+        }
+
+        this.nombre = nombre;
+        this.codigoIata = codigoIata;
+        this.nombreCiudad = nombreCiudad;
+        this.latitud = latitud;
+        this.longitud = longitud;
+        codigosUsados.add(codigoIata);
+    }
+    
+    public String getNombre() {
+        return nombre;
+    }
+    
+    public String getCodigoIata() {
+        return codigoIata;
+    }
+    
+    public String getNombreCiudad() {
+        return nombreCiudad;
+    }
+
+    public double getLatitud() {
+        return latitud;
+    }
+
+    public double getLongitud() {
+        return longitud;
+    }
+
+
+    /**
      * Este método calcula la distancia *aproximada* entre dos aeropuertos. Hay fórmulas más precisas pero esta es suficientemente buena para el caso de la aerolínea.
-     * 
-     * Este método asume que las coordenadas (latitud y longitud) de los aeropuertos están expresadas en la forma que las hace más cercanas. Si no es así, la distancia entre
+     * * Este método asume que las coordenadas (latitud y longitud) de los aeropuertos están expresadas en la forma que las hace más cercanas. Si no es así, la distancia entre
      * los dos aeropuertos podría ser la más larga posible.
-     * 
-     * Por ejemplo, dependiendo de cómo estén expresadas las longitudes, la distancia calculada entre Narita (Tokyo) y El Dorado (Bogotá) podría ser atravesando el Pacífico, o
+     * * Por ejemplo, dependiendo de cómo estén expresadas las longitudes, la distancia calculada entre Narita (Tokyo) y El Dorado (Bogotá) podría ser atravesando el Pacífico, o
      * atravesando el Atlántico y Asia (el camino largo)
-     * 
-     * @param aeropuerto1
+     * * @param aeropuerto1
      * @param aeropuerto2
      * @return La distancia en kilómetros entre los puntos
      */

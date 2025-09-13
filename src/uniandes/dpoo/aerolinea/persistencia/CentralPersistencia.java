@@ -17,24 +17,25 @@ public class CentralPersistencia
 
     /**
      * Este método retorna una nueva instancia de una clase capaz de cargar y salvar los datos de una aerolínea.
-     * 
-     * Las clases concretas que se pueden retornar son PersistenciaAerolineaJson y PersistenciaAerolineaPlaintext
-     * 
-     * @param tipoArchivo El tipo del archivo que será usado para cargar la información de la aerolínea
+     * * Las clases concretas que se pueden retornar son PersistenciaAerolineaJson y PersistenciaAerolineaPlaintext
+     * * @param tipoArchivo El tipo del archivo que será usado para cargar la información de la aerolínea
      * @return El objeto que debería usarse para cargar y salvar la información
      * @throws TipoInvalidoException Se lanza esta excepción si se utiliza un tipo de archivo que no es válido
      */
-    public static IPersistenciaAerolinea getPersistenciaAerolinea( String tipoArchivo ) throws TipoInvalidoException
-    {
-        // TODO implementar
+    public static IPersistenciaAerolinea getPersistenciaAerolinea(String tipoArchivo) throws TipoInvalidoException {
+        if (JSON.equals(tipoArchivo)) {
+            return new PersistenciaAerolineaJson();
+        } else if (PLAIN.equals(tipoArchivo)) {
+            return new PersistenciaAerolineaPlaintext();
+        } else {
+            throw new TipoInvalidoException(tipoArchivo);
+        }
     }
 
     /**
      * Este método retorna una nueva instancia de una clase capaz de cargar y salvar los datos de los tiquetes de una aerolínea
-     * 
-     * La única clase concreta que se puede retornar es PersistenciaTiquetesJson
-     * 
-     * @param tipoArchivo El tipo del archivo que será usado para cargar la información de los tiquetes
+     * * La única clase concreta que se puede retornar es PersistenciaTiquetesJson
+     * * @param tipoArchivo El tipo del archivo que será usado para cargar la información de los tiquetes
      * @return  El objeto que debería usarse para cargar y salvar la información
      * @throws TipoInvalidoException Se lanza esta excepción si se utiliza un tipo de archivo que no es válido
      */

@@ -1,6 +1,7 @@
 package uniandes.dpoo.aerolinea.modelo;
 
 import java.io.IOException;
+import java.time.MonthDay;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,15 +17,14 @@ import uniandes.dpoo.aerolinea.persistencia.CentralPersistencia;
 import uniandes.dpoo.aerolinea.persistencia.IPersistenciaAerolinea;
 import uniandes.dpoo.aerolinea.persistencia.IPersistenciaTiquetes;
 import uniandes.dpoo.aerolinea.persistencia.TipoInvalidoException;
+import uniandes.dpoo.aerolinea.tiquetes.GeneradorTiquetes;
 import uniandes.dpoo.aerolinea.tiquetes.Tiquete;
 
 /**
  * En esta clase se organizan todos los aspectos relacionados con una Aerolínea.
- * 
- * Por un lado, esta clase cumple un rol central como estructurador para todo el resto de elementos: directa o indirectamente, todos están contenidos y se pueden acceder a
+ * * Por un lado, esta clase cumple un rol central como estructurador para todo el resto de elementos: directa o indirectamente, todos están contenidos y se pueden acceder a
  * través de la clase Aerolínea.
- * 
- * Por otro lado, esta clase implementa algunas funcionalidades adicionales a su rol como estructurador, para lo cual se apoya en las otras clases que hacen parte del
+ * * Por otro lado, esta clase implementa algunas funcionalidades adicionales a su rol como estructurador, para lo cual se apoya en las otras clases que hacen parte del
  * proyecto.
  */
 public class Aerolinea
@@ -36,8 +36,7 @@ public class Aerolinea
 
     /**
      * Un mapa con las rutas que cubre la aerolínea.
-     * 
-     * Las llaves del mapa son el código de la ruta, mientras que los valores son las rutas
+     * * Las llaves del mapa son el código de la ruta, mientras que los valores son las rutas
      */
     private Map<String, Ruta> rutas;
 
@@ -48,8 +47,7 @@ public class Aerolinea
 
     /**
      * Un mapa con los clientes de la aerolínea.
-     * 
-     * Las llaves del mapa son los identificadores de los clientes, mientras que los valores son los clientes
+     * * Las llaves del mapa son los identificadores de los clientes, mientras que los valores son los clientes
      */
     private Map<String, Cliente> clientes;
 
@@ -163,7 +161,11 @@ public class Aerolinea
      */
     public Vuelo getVuelo( String codigoRuta, String fechaVuelo )
     {
-        // TODO implementar
+        for (Vuelo vuelo : this.vuelos) {
+        	if (vuelo.getRuta().getCodigoRuta().equals(codigoRuta) && vuelo.getFecha().equals(fechaVuelo)) {
+        		return vuelo;
+        	}
+        }
         return null;
     }
 
@@ -180,11 +182,12 @@ public class Aerolinea
      * Retorna todos los tiquetes de la aerolínea, los cuales se recolectan vuelo por vuelo
      * @return
      */
-    public Collection<Tiquete> getTiquetes( )
-    {
-        // TODO implementar
-        return null;
-
+    public Collection<Tiquete> getTiquetes( ){
+    	Collection<Tiquete> todosLosTiquetes = new ArrayList();
+        for (Vuelo vuelo: vuelos) {
+        	todosLosTiquetes.addAll(vuelo.getTiquetes());
+        }
+        return todosLosTiquetes;
     }
 
     // ************************************************************************************
@@ -203,7 +206,8 @@ public class Aerolinea
      */
     public void cargarAerolinea( String archivo, String tipoArchivo ) throws TipoInvalidoException, IOException, InformacionInconsistenteException
     {
-        // TODO implementar
+    	 IPersistenciaAerolinea cargador = CentralPersistencia.getPersistenciaAerolinea(tipoArchivo);
+    	 cargador.cargarAerolinea(archivo, this);
     }
 
     /**
@@ -215,7 +219,8 @@ public class Aerolinea
      */
     public void salvarAerolinea( String archivo, String tipoArchivo ) throws TipoInvalidoException, IOException
     {
-        // TODO implementar
+    	IPersistenciaAerolinea salvador = CentralPersistencia.getPersistenciaAerolinea(tipoArchivo);
+        salvador.salvarAerolinea(archivo, this);
     }
 
     /**
@@ -225,7 +230,7 @@ public class Aerolinea
      * @throws TipoInvalidoException Se lanza esta excepción si se indica un tipo de archivo inválido
      * @throws IOException Lanza esta excepción si hay problemas leyendo el archivo
      * @throws InformacionInconsistenteException Lanza esta excepción si durante la carga del archivo se encuentra información que no es consistente con la información de la
-     *         aerolínea
+     * aerolínea
      */
     public void cargarTiquetes( String archivo, String tipoArchivo ) throws TipoInvalidoException, IOException, InformacionInconsistenteException
     {
@@ -254,28 +259,44 @@ public class Aerolinea
 
     /**
      * Agrega un nuevo vuelo a la aerolínea, para que se realice en una cierta fecha, en una cierta ruta y con un cierto avión.
-     * 
-     * Este método debe verificar que el avión seleccionado no esté ya ocupado para otro vuelo en el mismo intervalo de tiempo del nuevo vuelo. No es necesario verificar que
+     * * Este método debe verificar que el avión seleccionado no esté ya ocupado para otro vuelo en el mismo intervalo de tiempo del nuevo vuelo. No es necesario verificar que
      * se encuentre en el lugar correcto (origen del vuelo).
-     * 
-     * @param fecha La fecha en la que se realizará el vuelo
+     * * @param fecha La fecha en la que se realizará el vuelo
      * @param codigoRuta La ruta que cubirá el vuelo
      * @param nombreAvion El nombre del avión que realizará el vuelo
      * @throws Exception Lanza esta excepción si hay algún problema con los datos suministrados
      */
     public void programarVuelo( String fecha, String codigoRuta, String nombreAvion ) throws Exception
     {
-        // TODO Implementar el método
+    	Ruta ruta = rutas.get(codigoRuta);
+        Avion avion = null;
+        for (Avion a : aviones) {
+            if (a.getNombre().equals(nombreAvion)) {
+                avion = a;
+                break;
+            }
+        }
+        if (ruta == null) {
+            throw new Exception("La ruta con el código " + codigoRuta + " no existe.");
+        }
+        if (avion == null) {
+            throw new Exception("El avión con el nombre " + nombreAvion + " no existe.");
+        }
+        for (Vuelo v : vuelos) {
+            if (v.getAvion().equals(avion) && v.getFecha().equals(fecha)) {
+                throw new Exception("El avión ya está ocupado para otro vuelo en esta fecha.");
+            }
+        }
+
+        Vuelo nuevoVuelo = new Vuelo(ruta, fecha, avion);
+        vuelos.add(nuevoVuelo);
     }
 
     /**
      * Vende una cierta cantidad de tiquetes para un vuelo, verificando que la información sea correcta.
-     * 
-     * Los tiquetes deben quedar asociados al vuelo y al cliente.
-     * 
-     * Según la fecha del vuelo, se deben usar las tarifas de temporada baja (enero a mayo y septiembre a noviembre) o las de temporada alta (el resto del año).
-     * 
-     * @param identificadorCliente El identificador del cliente al cual se le venden los tiquetes
+     * * Los tiquetes deben quedar asociados al vuelo y al cliente.
+     * * Según la fecha del vuelo, se deben usar las tarifas de temporada baja (enero a mayo y septiembre a noviembre) o las de temporada alta (el resto del año).
+     * * @param identificadorCliente El identificador del cliente al cual se le venden los tiquetes
      * @param fecha La fecha en la que se realiza el vuelo para el que se van a vender los tiquetes
      * @param codigoRuta El código de la ruta para el que se van a vender los tiquetes
      * @param cantidad La cantidad de tiquetes que se quieren comprar
@@ -283,11 +304,41 @@ public class Aerolinea
      * @throws VueloSobrevendidoException Se lanza esta excepción si no hay suficiente espacio en el vuelo para todos los pasajeros
      * @throws Exception Se lanza esta excepción para indicar que no se pudieron vender los tiquetes por algún otro motivo
      */
-    public int venderTiquetes( String identificadorCliente, String fecha, String codigoRuta, int cantidad ) throws VueloSobrevendidoException, Exception
-    {
-        // TODO Implementar el método
-        return -1;
+    public int venderTiquetes(String identificadorCliente, String fecha, String codigoRuta, int cantidad) throws VueloSobrevendidoException, Exception {
+        Cliente cliente = getCliente(identificadorCliente);
+        if (cliente == null) {
+            throw new Exception("El cliente con el identificador " + identificadorCliente + " no existe.");
+        }
+
+        Vuelo vuelo = getVuelo(codigoRuta, fecha);
+        if (vuelo == null) {
+            throw new Exception("El vuelo con la ruta " + codigoRuta + " en la fecha " + fecha + " no existe.");
+        }
+
+        if (vuelo.getAvion().getCapacidad() < (vuelo.getTiquetes().size() + cantidad)) {
+            throw new VueloSobrevendidoException("No hay suficiente capacidad para vender " + cantidad + " tiquetes.");
+        }
+        
+        // Se determina la tarifa del tiquete según la temporada
+        int tarifa = 0;
+        int mes = Integer.parseInt(fecha.substring(5, 7)); // Suponiendo que la fecha está en formato AAAA-MM-DD
+        
+        if (mes >= 6 && mes <= 8 || mes == 12) {
+            tarifa = (int) (vuelo.getRuta().getTarifa() * 1.2); // Temporada alta
+        } else {
+            tarifa = (int) (vuelo.getRuta().getTarifa() * 0.8); // Temporada baja
+        }
+        
+        // Se venden los tiquetes
+        for (int i = 0; i < cantidad; i++) {
+            Tiquete nuevoTiquete = GeneradorTiquetes.generarTiquete(vuelo, cliente, tarifa);
+            vuelo.agregarTiquete(nuevoTiquete);
+            cliente.agregarTiquete(nuevoTiquete);
+        }
+
+        return tarifa * cantidad;
     }
+
 
     /**
      * Registra que un cierto vuelo fue realizado
@@ -296,7 +347,10 @@ public class Aerolinea
      */
     public void registrarVueloRealizado( String fecha, String codigoRuta )
     {
-        // TODO Implementar el método
+    	Vuelo vuelo = getVuelo(codigoRuta, fecha);
+        if (vuelo != null) {
+            vuelo.registrarVueloRealizado();
+        }
     }
 
     /**
@@ -306,8 +360,16 @@ public class Aerolinea
      */
     public String consultarSaldoPendienteCliente( String identificadorCliente )
     {
-        // TODO Implementar el método
-        return "";
+    	Cliente cliente = getCliente(identificadorCliente);
+        if (cliente == null) {
+            return "El cliente con el identificador " + identificadorCliente + " no existe.";
+        }
+
+        int saldo = 0;
+        for (Vuelo vuelo : vuelos) {
+            saldo += vuelo.calcularValorTiquetesSinUsar(cliente);
+        }
+        return "El saldo pendiente del cliente " + identificadorCliente + " es: " + saldo;
     }
 
 }
